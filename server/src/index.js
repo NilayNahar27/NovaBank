@@ -5,6 +5,9 @@ import cors from 'cors'
 import authRoutes from './routes/authRoutes.js'
 import accountRoutes from './routes/accountRoutes.js'
 import transactionRoutes from './routes/transactionRoutes.js'
+import beneficiaryRoutes from './routes/beneficiaryRoutes.js'
+import transferRoutes from './routes/transferRoutes.js'
+import notificationRoutes from './routes/notificationRoutes.js'
 import { errorHandler } from './middleware/errorHandler.js'
 import { apiLimiter } from './middleware/rateLimiter.js'
 
@@ -26,12 +29,15 @@ app.use(express.json({ limit: '100kb' }))
 app.use('/api', apiLimiter)
 
 app.get('/api/health', (req, res) => {
-  res.json({ ok: true, service: 'NovaBank ATM API' })
+  res.json({ ok: true, service: 'NovaBank Net Banking API' })
 })
 
 app.use('/api/auth', authRoutes)
 app.use('/api/account', accountRoutes)
 app.use('/api/transactions', transactionRoutes)
+app.use('/api/beneficiaries', beneficiaryRoutes)
+app.use('/api/transfers', transferRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' })

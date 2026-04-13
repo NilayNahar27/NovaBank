@@ -26,11 +26,11 @@ export default function Landing() {
                 transition={{ delay: 0.05 }}
                 className="mt-6 font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl"
               >
-                NovaBank ATM Simulator
+                NovaBank Net Banking
               </motion.h1>
               <p className="mt-4 max-w-xl text-lg leading-relaxed text-slate-600">
-                A modern web experience for deposits, withdrawals, fast cash, statements, and secure PIN
-                management — powered by a ledger-backed balance model and JWT authentication.
+                A polished digital banking workspace: transfers, beneficiaries, statements, alerts, and a
+                ledger-backed balance — powered by Express, MySQL, and a modern React dashboard.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
@@ -44,14 +44,14 @@ export default function Landing() {
                   to="/login"
                   className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
                 >
-                  Insert card
+                  Sign in
                 </Link>
               </div>
               <div className="mt-10 grid gap-4 sm:grid-cols-3">
                 {[
-                  { t: 'Ledger balances', d: 'No manual balance drift.', icon: Wallet },
-                  { t: 'Secure by design', d: 'Hashed PIN + JWT.', icon: ShieldCheck },
-                  { t: 'Polished UX', d: 'Bank-grade UI patterns.', icon: Sparkles },
+                  { t: 'Ledger balances', d: 'Credits, debits, transfers — auditable.', icon: Wallet },
+                  { t: 'Secure by design', d: 'Hashed secrets + JWT sessions.', icon: ShieldCheck },
+                  { t: 'Premium UX', d: 'Banking patterns that feel real.', icon: Sparkles },
                 ].map(({ t, d, icon: Icon }) => (
                   <div key={t} className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
                     <Icon className="h-5 w-5 text-brand-600" />
@@ -72,9 +72,9 @@ export default function Landing() {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Virtual card
+                      Primary account
                     </p>
-                    <p className="mt-2 font-mono text-lg text-slate-900">•••• •••• •••• 9012</p>
+                    <p className="mt-2 font-mono text-lg text-slate-900">•••• •••• •••• 0366</p>
                   </div>
                   <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
                     Active
@@ -86,12 +86,12 @@ export default function Landing() {
                     <p className="mt-1 font-display text-2xl font-semibold text-slate-900">₹2,58,850</p>
                   </div>
                   <div className="rounded-2xl bg-brand-50 p-4">
-                    <p className="text-xs text-brand-800">Last txn</p>
-                    <p className="mt-1 text-sm font-semibold text-brand-900">Fast cash · ₹2,000</p>
+                    <p className="text-xs text-brand-800">Last transfer</p>
+                    <p className="mt-1 text-sm font-semibold text-brand-900">IMPS · ₹18,500</p>
                   </div>
                 </div>
                 <div className="mt-8 grid grid-cols-3 gap-3">
-                  {['Deposit', 'Withdraw', 'Statement'].map((a) => (
+                  {['Transfer', 'Beneficiaries', 'Statement'].map((a) => (
                     <div
                       key={a}
                       className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-center text-xs font-semibold text-slate-700"

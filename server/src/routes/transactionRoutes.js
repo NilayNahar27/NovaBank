@@ -33,8 +33,13 @@ router.post(
 router.get(
   '/history',
   [
-    query('limit').optional().isInt({ min: 1, max: 200 }).toInt(),
+    query('limit').optional().isInt({ min: 1, max: 100 }).toInt(),
+    query('page').optional().isInt({ min: 1, max: 10_000 }).toInt(),
     query('type').optional().isIn(['credit', 'debit']),
+    query('category').optional().trim().isLength({ max: 50 }),
+    query('from').optional().isISO8601(),
+    query('to').optional().isISO8601(),
+    query('q').optional().trim().isLength({ max: 80 }),
   ],
   ctrl.history
 )

@@ -32,24 +32,18 @@ const step3Rules = [
     .isLength({ min: 4, max: 12 })
     .matches(/^\d+$/)
     .withMessage('PIN must be 4–12 digits'),
+  body('password')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be at least 8 characters')
+    .matches(/^(?=.*[A-Za-z])(?=.*\d).+$/)
+    .withMessage('Password must include letters and numbers'),
   body('accountType').optional().isIn(['Savings', 'Current']),
-]
-
-const loginRules = [
-  body('cardNumber')
-    .trim()
-    .isLength({ min: 14, max: 19 })
-    .withMessage('Card number required'),
-  body('pin')
-    .isLength({ min: 4, max: 12 })
-    .matches(/^\d+$/)
-    .withMessage('PIN must be numeric'),
 ]
 
 router.post('/signup/step1', step1Rules, auth.signupStep1)
 router.post('/signup/step2', step2Rules, auth.signupStep2)
 router.post('/signup/step3', step3Rules, auth.signupStep3)
-router.post('/login', loginLimiter, loginRules, auth.login)
+router.post('/login', loginLimiter, auth.login)
 router.get('/me', requireAuth, auth.me)
 
 export default router

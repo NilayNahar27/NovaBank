@@ -1,16 +1,31 @@
-# NovaBank ATM Simulator
+# NovaBank Net Banking
 
-Modern full-stack rewrite of a legacy desktop ATM experience: **React + Vite + Tailwind** on the frontend and **Node.js + Express + MySQL** on the backend. Balances are **ledger-derived** (credits minus debits), PINs are **bcrypt-hashed**, and sessions use **JWT** bearer tokens.
+NovaBank started as an **ATM-style simulator** and has been **upgraded in-place** into a full **internet banking demo**: beneficiaries, fund transfers with receipts, richer transaction history, in-app notifications, profile and security settings, and a banking-grade dashboard — still powered by **React + Vite + Tailwind** on the frontend and **Node.js + Express + MySQL** on the backend.
+
+Balances remain **ledger-derived** (credits minus debits). PINs and passwords are **bcrypt-hashed**. Sessions use **JWT** bearer tokens.
 
 ## Features
 
-- **3-step signup** (personal → profile → account + PIN) with server-side draft sessions
-- **Login** with card number + PIN
-- **Dashboard** with masked card, balance, quick actions, chart, recent activity
-- **Deposit / withdraw / fast cash** with validation and insufficient-funds handling
-- **Balance enquiry** and **mini statement** with filters + CSV export
-- **PIN change** with current-PIN verification
-- **Logout** and protected SPA routes
+### Public
+
+- Landing page for NovaBank Online
+- **Login**: net banking (email + password) **or** card + PIN (backward compatible)
+- **Signup** (3 steps): personal → profile → account + **ATM PIN + net banking password**
+
+### Authenticated
+
+- **Dashboard**: balance, masked card/account, customer ID, monthly credit/debit totals, 7-day chart (Recharts), quick actions, recent activity with receipt links for transfers
+- **Accounts** overview
+- **Transfer money**: saved beneficiary or one-time payee, confirmation step, success + receipt link
+- **Beneficiaries**: add / list / remove, nickname, duplicate detection (server)
+- **Transactions**: pagination, type & category filters, date range, search
+- **Statement**: filters + **print / save as PDF** from the browser print dialog
+- **Deposit / withdraw / fast cash**: demo money movement with remarks and inline confirmation
+- **Balance** enquiry
+- **Cards & account details**: masked card, IFSC, branch, customer ID
+- **Profile**: edit contact and KYC-style profile fields
+- **Security**: change PIN, change password, session notes
+- **Notifications** dropdown (alerts for transfers, deposits, withdrawals, PIN/password changes, beneficiaries)
 
 ## Repository layout
 
@@ -18,47 +33,55 @@ Modern full-stack rewrite of a legacy desktop ATM experience: **React + Vite + T
 ATM-Simulator/
 ├── client/                 # Vite + React SPA
 │   ├── src/
-│   │   ├── components/     # Reusable UI (navbar, table, forms, etc.)
-│   │   ├── context/        # Auth + toast providers
-│   │   ├── hooks/          # useAuth, useToast (thin re-exports)
-│   │   ├── layouts/        # Auth + dashboard shells
-│   │   ├── pages/          # Route-level screens
-│   │   ├── routes/         # React Router map
-│   │   ├── services/       # Axios API client
-│   │   └── utils/          # Formatting helpers
+│   │   ├── components/   # Navbar, Sidebar, Topbar (alerts), tables, forms…
+│   │   ├── context/      # Auth + toast
+│   │   ├── hooks/        # Re-exports (useAuth, useToast)
+│   │   ├── layouts/      # Auth + dashboard shell
+│   │   ├── pages/        # Route screens (dashboard, transfer, statement…)
+│   │   ├── routes/       # React Router map
+│   │   ├── services/     # Axios client
+│   │   └── utils/
 │   └── ...
-├── server/                 # Express API
-│   ├── db/schema.sql       # MySQL DDL
+├── server/
+│   ├── db/
+│   │   ├── schema.sql              # Full schema (fresh install)
+│   │   └── migration_v2_netbanking.sql  # Upgrade legacy ATM-only DB (run once)
 │   └── src/
-│       ├── config/         # Pool configuration
-│       ├── controllers/    # HTTP handlers
-│       ├── middleware/     # JWT auth, errors, rate limits
-│       ├── routes/         # Express routers + validators
-│       ├── services/       # Business logic
-│       ├── scripts/seed.js # Optional demo data
+│       ├── config/
+│       ├── controllers/
+│       ├── middleware/
+│       ├── routes/
+│       ├── services/
+│       ├── scripts/seed.js
 │       └── index.js
 ├── README.md
-└── .gitignore
+└── .env.example
 ```
 
 ## Prerequisites
 
-- **Node.js 20+** (LTS recommended)
+- **Node.js 20+**
 - **MySQL 8.x** (or compatible MariaDB)
 
 ## 1. Database setup
 
-Create schema and tables:
+### New database
 
 ```bash
 mysql -u root -p < server/db/schema.sql
 ```
 
-Create `server/.env` (copy from `server/.env.example`) and set `DB_PASSWORD`, `JWT_SECRET`, etc.
+### Upgrading an older NovaBank ATM database
+
+Run the migration **once** (adjust if some columns already exist):
+
+```bash
+mysql -u root -p novabank_atm < server/db/migration_v2_netbanking.sql
+```
+
+Copy `server/.env.example` → `server/.env` and set `DB_PASSWORD`, `JWT_SECRET`, etc.
 
 ### Optional demo user
-
-From `server/` after `.env` is configured:
 
 ```bash
 cd server
@@ -66,29 +89,20 @@ npm install
 npm run seed
 ```
 
-Demo credentials (printed by seed):
+**Demo credentials (printed by seed):**
 
-- **Card number:** `4532015112830366`
-- **PIN:** `1234`
+- **Net banking:** `demo@novabank.test` / `Demo1234`
+- **Card login:** card `4532015112830366` / PIN `1234`
 
 ## 2. Backend
 
 ```bash
 cd server
 npm install
-copy .env.example .env   # Windows — use cp on macOS/Linux
-# edit .env with your DB credentials + strong JWT secret
 npm run dev
 ```
 
-API listens on `http://localhost:5000` by default (`PORT` in `.env`).
-
-Health check: `GET http://localhost:5000/api/health`
-
-### Backend troubleshooting
-
-- **`npm run dev` returns to the prompt with no “listening” line** — Run `npm run dev:plain` once; you should see either the usual listen message or a clear error (for example **Port 5000 is already in use**). Free that port or set a different `PORT` in `server/.env`.
-- **`node --watch` issues** — Use `npm run dev:plain` for a normal long-running server (no file watching).
+API: `http://localhost:5000` — health: `GET /api/health`
 
 ## 3. Frontend
 
@@ -98,36 +112,50 @@ npm install
 npm run dev
 ```
 
-SPA runs at `http://localhost:5173` and **proxies `/api`** to the backend (see `client/vite.config.js`).
+SPA: `http://localhost:5173` — Vite **proxies `/api`** to the backend (`client/vite.config.js`).
 
-### Direct API URL (optional)
+### Optional direct API URL
 
-If you need the browser to call the API without the dev proxy (e.g. unusual hosting), set `VITE_API_URL` in `client/.env` and restart Vite.
+Set `VITE_API_URL` in `client/.env` if the browser must call the API without the dev proxy.
 
-## API overview
+## Main routes (SPA)
+
+| Path | Description |
+| --- | --- |
+| `/` | Landing |
+| `/login`, `/signup` | Auth |
+| `/dashboard` | Home dashboard |
+| `/accounts`, `/cards` | Account details |
+| `/transfer`, `/beneficiaries` | Transfers & payees |
+| `/transactions`, `/statement` | History & printable statement |
+| `/deposit`, `/withdraw`, `/fast-cash`, `/balance` | Money movement |
+| `/profile`, `/security`, `/change-pin` | Profile & credentials |
+| `/transfers/:id/receipt` | Transfer receipt |
+
+Legacy `/app` URLs redirect to `/dashboard`.
+
+## API overview (selected)
 
 | Method | Path | Notes |
 | --- | --- | --- |
-| POST | `/api/auth/signup/step1` | Personal details → `signupToken` |
-| POST | `/api/auth/signup/step2` | Profile merge |
-| POST | `/api/auth/signup/step3` | Creates user + account + welcome credit |
-| POST | `/api/auth/login` | Card + PIN → JWT (rate limited) |
-| GET | `/api/auth/me` | Bearer JWT |
-| GET | `/api/account/summary` | Protected |
-| GET | `/api/account/balance` | Protected |
-| POST | `/api/account/change-pin` | Protected |
-| POST | `/api/transactions/deposit` | Protected |
-| POST | `/api/transactions/withdraw` | Protected |
-| POST | `/api/transactions/fast-cash` | Protected (`500/1000/2000/5000`) |
-| GET | `/api/transactions/history` | Query `limit`, `type` |
+| POST | `/api/auth/signup/step1` … `step3` | Step 3 requires `password` |
+| POST | `/api/auth/login` | `{ email, password }` **or** `{ cardNumber, pin }` |
+| GET | `/api/auth/me` | Dashboard payload + `monthlyCredits` / `monthlyDebits` / `unreadNotifications` |
+| GET/PATCH | `/api/account/profile` | Profile read/update |
+| GET | `/api/account/details` | Cards / account metadata |
+| POST | `/api/account/change-pin`, `/api/account/change-password` | Security |
+| GET | `/api/transactions/history` | `page`, `limit`, `type`, `category`, `from`, `to`, `q` |
+| GET/POST/DELETE | `/api/beneficiaries` | Payee management |
+| POST | `/api/transfers` | Fund transfer (atomic) |
+| GET | `/api/transfers/history`, `/api/transfers/:id` | Transfer list + receipt data |
+| GET/PATCH | `/api/notifications` | Alerts + mark read |
 
 ## Security notes (interview talking points)
 
-- **Parameterized queries** via `mysql2`
-- **PIN hashing** with bcrypt, **JWT** auth, **CORS** allow-list via `CORS_ORIGIN`
-- **express-validator** on inputs, **express-rate-limit** on login (+ general API limiter scaffold)
-- **Signup drafts** live in memory (MVP) — document trade-off; swap for Redis in production
-- **Sanitized** transaction descriptions on the server
+- Parameterized SQL (`mysql2`), centralized errors, `express-validator`, rate limiting on login
+- bcrypt for PIN and password; JWT for API auth
+- Transfer and balance updates use **transactions** and `SELECT … FOR UPDATE` on the sender account
+- Internal transfers (payee account exists in the same DB) credit the receiver and notify both users
 
 ## Production build
 
@@ -135,7 +163,7 @@ If you need the browser to call the API without the dev proxy (e.g. unusual host
 cd client && npm run build
 ```
 
-Serve `client/dist` via any static host and point it at your deployed API (`VITE_API_URL` at build time).
+Serve `client/dist` and set `VITE_API_URL` at build time for the deployed API.
 
 ## License
 

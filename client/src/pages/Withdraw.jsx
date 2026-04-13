@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { motion, AnimatePresence } from 'framer-motion'
 import FormInput from '../components/FormInput.jsx'
 import api from '../services/api.js'
 import { useToast } from '../context/ToastContext.jsx'
@@ -8,6 +10,7 @@ import { formatINR } from '../utils/format.js'
 export default function Withdraw() {
   const { push } = useToast()
   const { refreshMe } = useAuth()
+  const [done, setDone] = useState(null)
   const {
     register,
     handleSubmit,
@@ -19,8 +22,9 @@ export default function Withdraw() {
     try {
       const { data } = await api.post('/api/transactions/withdraw', {
         amount: Number(values.amount),
-        description: values.description || 'ATM withdrawal',
+        description: values.description || 'Withdrawal',
       })
+      setDone({ balance: data.balance, amount: Number(values.amount) })
       push(`Withdrawal successful. New balance ${formatINR(data.balance)}`)
       reset()
       await refreshMe()
@@ -32,12 +36,31 @@ export default function Withdraw() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-slate-900">Withdraw cash</h1>
+        <h1 className="font-display text-2xl font-semibold text-slate-900">Withdraw</h1>
         <p className="mt-1 text-sm text-slate-600">
-          Withdrawals create debit ledger entries. The server rejects requests that exceed your available
-          balance.
+          Demo withdrawal — debits post to your ledger and the server blocks insufficient balance.
         </p>
       </div>
+      <AnimatePresence>
+        {done && (
+          <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-900"
+          >
+            <p className="font-semibold">Debited {formatINR(done.amount)}</p>
+            <p className="mt-1 text-rose-800/90">New balance {formatINR(done.balance)}</p>
+            <button
+              type="button"
+              onClick={() => setDone(null)}
+              className="mt-2 text-xs font-semibold text-rose-800 underline"
+            >
+              Dismiss
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="space-y-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-card"
@@ -50,7 +73,7 @@ export default function Withdraw() {
           {...register('amount', { required: 'Amount is required', min: { value: 1, message: 'Must be positive' } })}
           error={errors.amount?.message}
         />
-        <FormInput label="Note (optional)" {...register('description')} />
+        <FormInput label="Remarks (optional)" {...register('description')} />
         <button
           type="submit"
           disabled={isSubmitting}

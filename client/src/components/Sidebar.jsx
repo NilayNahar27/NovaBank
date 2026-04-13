@@ -2,23 +2,35 @@ import { NavLink } from 'react-router-dom'
 import {
   ArrowDownLeft,
   ArrowUpRight,
-  Banknote,
   CreditCard,
   FileText,
   Gauge,
   Landmark,
+  ListOrdered,
   Lock,
+  Send,
+  Settings,
+  Shield,
+  Users,
+  Wallet,
   Zap,
 } from 'lucide-react'
 
 const links = [
-  { to: '/app', end: true, label: 'Dashboard', icon: Gauge },
-  { to: '/app/deposit', label: 'Deposit', icon: ArrowDownLeft },
-  { to: '/app/withdraw', label: 'Withdraw', icon: ArrowUpRight },
-  { to: '/app/fast-cash', label: 'Fast Cash', icon: Zap },
-  { to: '/app/balance', label: 'Balance', icon: Landmark },
-  { to: '/app/mini-statement', label: 'Mini Statement', icon: FileText },
-  { to: '/app/change-pin', label: 'Change PIN', icon: Lock },
+  { to: '/dashboard', end: true, label: 'Dashboard', icon: Gauge },
+  { to: '/accounts', label: 'Accounts', icon: Wallet },
+  { to: '/transfer', label: 'Transfer', icon: Send },
+  { to: '/beneficiaries', label: 'Beneficiaries', icon: Users },
+  { to: '/transactions', label: 'Transactions', icon: ListOrdered },
+  { to: '/statement', label: 'Mini Statement', icon: FileText },
+  { to: '/deposit', label: 'Add Funds', icon: ArrowDownLeft },
+  { to: '/withdraw', label: 'Withdraw', icon: ArrowUpRight },
+  { to: '/fast-cash', label: 'Fast Cash', icon: Zap },
+  { to: '/balance', label: 'Balance', icon: Landmark },
+  { to: '/cards', label: 'Cards', icon: CreditCard },
+  { to: '/profile', label: 'Profile', icon: Settings },
+  { to: '/security', label: 'Security', icon: Shield },
+  { to: '/change-pin', label: 'Change PIN', icon: Lock },
 ]
 
 export default function Sidebar({ onNavigate }) {
@@ -26,12 +38,12 @@ export default function Sidebar({ onNavigate }) {
     <aside className="flex h-full flex-col border-r border-slate-200 bg-white">
       <div className="border-b border-slate-100 px-5 py-4">
         <div className="flex items-center gap-2 text-slate-800">
-          <CreditCard className="h-5 w-5 text-brand-600" />
-          <p className="font-display text-sm font-semibold">Self-Service</p>
+          <Wallet className="h-5 w-5 text-brand-600" />
+          <p className="font-display text-sm font-semibold">NovaBank Online</p>
         </div>
-        <p className="mt-1 text-xs text-slate-500">Choose a secure banking action.</p>
+        <p className="mt-1 text-xs text-slate-500">Secure banking in demo mode.</p>
       </div>
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-1 overflow-y-auto p-3">
         {links.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -52,7 +64,7 @@ export default function Sidebar({ onNavigate }) {
         ))}
       </nav>
       <div className="border-t border-slate-100 p-4 text-xs text-slate-500">
-        NovaBank demo environment. Funds are simulated.
+        Funds and transfers are simulated for portfolio demos.
       </div>
     </aside>
   )

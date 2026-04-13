@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs'
 import pool from '../config/db.js'
-import { generateUniqueAccountNumber, generateUniqueCardNumber } from '../utils/numbers.js'
+import { generateUniqueAccountNumber, generateUniqueCardNumber, generateUniqueCustomerId } from '../utils/numbers.js'
 import {
   createSignupSession,
   deleteSignupSession,
@@ -8,12 +8,13 @@ import {
   mergeSignupSession,
 } from './signupSessionService.js'
 import { addCredit } from './transactionService.js'
-import { findByCardNumber } from './accountService.js'
+import { findByCardNumber, findByEmailWithAccount } from './accountService.js'
+import * as notificationService from './notificationService.js'
 
 const SALT_ROUNDS = 10
 
 export async function emailExists(email) {
-  const [rows] = await pool.query('SELECT id FROM users WHERE email = ? LIMIT 1', [email])
+  const [rows] = await pool.query('SELECT id FROM users WHERE LOWER(email) = LOWER(?) LIMIT 1', [email])
   return rows.length > 0
 }
 
@@ -46,7 +47,7 @@ export function continueSignupStep2(signupToken, body) {
   return { ok: true }
 }
 
-export async function finalizeSignup(signupToken, { pin, accountType }) {
+export async function finalizeSignup(signupToken, { pin, password, accountType }) {
   const s = getSignupSession(signupToken)
   if (!s) return { error: 'INVALID_OR_EXPIRED_SIGNUP_SESSION' }
 
@@ -56,12 +57,14 @@ export async function finalizeSignup(signupToken, { pin, accountType }) {
   }
 
   const pinHash = await bcrypt.hash(String(pin), SALT_ROUNDS)
+  const passwordHash = await bcrypt.hash(String(password), SALT_ROUNDS)
   const conn = await pool.getConnection()
   try {
     await conn.beginTransaction()
+    const customerId = await generateUniqueCustomerId(conn)
     const [userRes] = await conn.query(
-      `INSERT INTO users (full_name, email, phone, pin_hash) VALUES (?, ?, ?, ?)`,
-      [d.fullName, d.email, d.phone, pinHash]
+      `INSERT INTO users (customer_id, full_name, email, phone, pin_hash, password_hash) VALUES (?, ?, ?, ?, ?, ?)`,
+      [customerId, d.fullName, d.email, d.phone, pinHash, passwordHash]
     )
     const userId = userRes.insertId
 
@@ -93,7 +96,7 @@ export async function finalizeSignup(signupToken, { pin, accountType }) {
     )
     const accountId = accRes.insertId
 
-    await addCredit(accountId, 500, 'Welcome bonus — NovaBank (simulated)', conn)
+    await addCredit(accountId, 500, 'Welcome bonus — NovaBank (simulated)', conn, { category: 'deposit' })
 
     await conn.commit()
     deleteSignupSession(signupToken)
@@ -125,6 +128,19 @@ export async function verifyLogin(cardNumber, pin) {
   }
 }
 
+export async function verifyLoginByEmail(email, password) {
+  const row = await findByEmailWithAccount(email)
+  if (!row?.password_hash) return null
+  const ok = await bcrypt.compare(String(password), row.password_hash)
+  if (!ok) return null
+  return {
+    userId: row.user_id,
+    accountId: row.account_id,
+    fullName: row.full_name,
+    email: row.email,
+  }
+}
+
 export async function changePin(userId, currentPin, newPin) {
   const [rows] = await pool.query('SELECT id, pin_hash FROM users WHERE id = ? LIMIT 1', [userId])
   const user = rows[0]
@@ -141,4 +157,34 @@ export async function changePin(userId, currentPin, newPin) {
   }
   const pinHash = await bcrypt.hash(String(newPin), SALT_ROUNDS)
   await pool.query('UPDATE users SET pin_hash = ? WHERE id = ?', [pinHash, userId])
+  await notificationService.createNotification(userId, 'pin', 'PIN updated', 'Your ATM / debit PIN was changed successfully.')
+}
+
+export async function changePassword(userId, currentPassword, newPassword) {
+  const [rows] = await pool.query('SELECT id, password_hash FROM users WHERE id = ? LIMIT 1', [userId])
+  const user = rows[0]
+  if (!user) {
+    const err = new Error('User not found')
+    err.code = 'NOT_FOUND'
+    throw err
+  }
+  if (!user.password_hash) {
+    const err = new Error('Password login is not enabled for this account')
+    err.code = 'NO_PASSWORD'
+    throw err
+  }
+  const ok = await bcrypt.compare(String(currentPassword), user.password_hash)
+  if (!ok) {
+    const err = new Error('Current password is incorrect')
+    err.code = 'INVALID_PASSWORD'
+    throw err
+  }
+  const passwordHash = await bcrypt.hash(String(newPassword), SALT_ROUNDS)
+  await pool.query('UPDATE users SET password_hash = ? WHERE id = ?', [passwordHash, userId])
+  await notificationService.createNotification(
+    userId,
+    'password',
+    'Password updated',
+    'Your net banking password was changed successfully.'
+  )
 }

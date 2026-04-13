@@ -7,7 +7,9 @@ import {
   FileText,
   Landmark,
   Lock,
+  Send,
   Sparkles,
+  Users,
   Zap,
 } from 'lucide-react'
 import {
@@ -23,13 +25,15 @@ import StatCard from '../components/StatCard.jsx'
 import TransactionTable from '../components/TransactionTable.jsx'
 import { DashboardSkeleton } from '../components/Skeleton.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
-import { formatINR, maskCard } from '../utils/format.js'
+import { formatINR, maskAccount, maskCard } from '../utils/format.js'
 
 const quick = [
-  { to: '/app/deposit', label: 'Deposit', icon: ArrowDownLeft, color: 'from-emerald-600 to-teal-600' },
-  { to: '/app/withdraw', label: 'Withdraw', icon: ArrowUpRight, color: 'from-rose-600 to-orange-600' },
-  { to: '/app/fast-cash', label: 'Fast cash', icon: Zap, color: 'from-amber-500 to-orange-600' },
-  { to: '/app/mini-statement', label: 'Mini statement', icon: FileText, color: 'from-brand-600 to-indigo-600' },
+  { to: '/deposit', label: 'Add funds', icon: ArrowDownLeft, color: 'from-emerald-600 to-teal-600' },
+  { to: '/withdraw', label: 'Withdraw', icon: ArrowUpRight, color: 'from-rose-600 to-orange-600' },
+  { to: '/fast-cash', label: 'Fast cash', icon: Zap, color: 'from-amber-500 to-orange-600' },
+  { to: '/transfer', label: 'Transfer', icon: Send, color: 'from-brand-600 to-indigo-600' },
+  { to: '/beneficiaries', label: 'Beneficiaries', icon: Users, color: 'from-sky-600 to-indigo-600' },
+  { to: '/statement', label: 'Mini statement', icon: FileText, color: 'from-violet-600 to-fuchsia-600' },
 ]
 
 export default function Dashboard() {
@@ -62,20 +66,23 @@ export default function Dashboard() {
           <div>
             <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold">
               <Sparkles className="h-3.5 w-3.5" />
-              Welcome back
+              NovaBank Online
             </p>
             <h1 className="mt-3 font-display text-3xl font-semibold sm:text-4xl">
-              {(me.user.fullName || 'Customer').split(' ')[0]}&rsquo;s workspace
+              Hello, {(me.user.fullName || 'Customer').split(' ')[0]}
             </h1>
             <p className="mt-2 max-w-xl text-sm text-blue-100/90">
-              Balances are derived from your transaction ledger — every credit and debit is auditable.
+              Your balance is derived from a transaction ledger — every credit, debit, and transfer is recorded.
             </p>
             <div className="mt-6 flex flex-wrap gap-3 text-sm">
               <span className="rounded-xl bg-white/10 px-3 py-1 font-mono text-xs sm:text-sm">
                 {maskCard(me.account.cardNumber)}
               </span>
               <span className="rounded-xl bg-white/10 px-3 py-1 text-xs font-semibold sm:text-sm">
-                {me.account.accountType} · {me.account.accountNumber}
+                {me.account.accountType} · {maskAccount(me.account.accountNumber)}
+              </span>
+              <span className="rounded-xl bg-white/10 px-3 py-1 text-xs font-semibold sm:text-sm">
+                Customer ID {me.user.customerId}
               </span>
             </div>
           </div>
@@ -83,31 +90,27 @@ export default function Dashboard() {
             <p className="text-xs font-semibold uppercase tracking-wide text-blue-100">Available balance</p>
             <p className="mt-1 font-display text-3xl font-semibold">{formatINR(me.balance)}</p>
             <Link
-              to="/app/balance"
+              to="/balance"
               className="mt-3 inline-flex items-center gap-2 text-xs font-semibold text-white/90 hover:underline"
             >
               <Landmark className="h-4 w-4" />
-              View balance screen
+              Balance enquiry
             </Link>
           </div>
         </div>
       </motion.div>
 
       <div className="grid gap-4 md:grid-cols-3">
-        <StatCard title="Cash position" value={formatINR(me.balance)} icon={Banknote} accent="brand" />
+        <StatCard title="Available balance" value={formatINR(me.balance)} icon={Banknote} accent="brand" />
         <StatCard
-          title="Recent credits"
-          value={formatINR(
-            me.recentTransactions?.filter((t) => t.type === 'credit').reduce((s, t) => s + Number(t.amount), 0) || 0
-          )}
+          title="This month — credits"
+          value={formatINR(me.monthlyCredits ?? 0)}
           icon={ArrowDownLeft}
           accent="emerald"
         />
         <StatCard
-          title="Recent debits"
-          value={formatINR(
-            me.recentTransactions?.filter((t) => t.type === 'debit').reduce((s, t) => s + Number(t.amount), 0) || 0
-          )}
+          title="This month — debits"
+          value={formatINR(me.monthlyDebits ?? 0)}
           icon={ArrowUpRight}
           accent="amber"
         />
@@ -116,14 +119,14 @@ export default function Dashboard() {
       <div>
         <div className="mb-3 flex items-center justify-between gap-3">
           <h2 className="font-display text-lg font-semibold text-slate-900">Quick actions</h2>
-          <Link to="/app/change-pin" className="text-sm font-semibold text-brand-700 hover:underline">
+          <Link to="/security" className="text-sm font-semibold text-brand-700 hover:underline">
             <span className="inline-flex items-center gap-1">
               <Lock className="h-4 w-4" />
-              Change PIN
+              Security
             </span>
           </Link>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {quick.map(({ to, label, icon: Icon, color }) => (
             <Link
               key={to}
@@ -135,7 +138,7 @@ export default function Dashboard() {
               />
               <Icon className="h-5 w-5 text-slate-800" />
               <p className="mt-3 text-sm font-semibold text-slate-900">{label}</p>
-              <p className="mt-1 text-xs text-slate-500">Secure · validated server-side</p>
+              <p className="mt-1 text-xs text-slate-500">Demo-safe · validated server-side</p>
             </Link>
           ))}
         </div>
@@ -168,13 +171,13 @@ export default function Dashboard() {
           </div>
         </div>
         <div className="lg:col-span-3">
-          <div className="mb-3 flex items-center justify-between">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h3 className="font-display text-base font-semibold text-slate-900">Recent transactions</h3>
-            <Link to="/app/mini-statement" className="text-sm font-semibold text-brand-700 hover:underline">
+            <Link to="/transactions" className="text-sm font-semibold text-brand-700 hover:underline">
               View all
             </Link>
           </div>
-          <TransactionTable rows={me.recentTransactions} />
+          <TransactionTable rows={me.recentTransactions} showReceiptLink />
         </div>
       </div>
     </div>

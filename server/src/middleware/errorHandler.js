@@ -12,6 +12,18 @@ export function errorHandler(err, req, res, next) {
   if (code === 'NOT_FOUND') {
     return res.status(404).json({ error: err.message })
   }
+  if (code === 'DUPLICATE_BENEFICIARY') {
+    return res.status(409).json({ error: err.message })
+  }
+  if (code === 'INVALID_PASSWORD' || code === 'INVALID_PIN') {
+    return res.status(400).json({ error: err.message })
+  }
+  if (code === 'NO_PASSWORD') {
+    return res.status(400).json({ error: err.message })
+  }
+  if (code === 'VALIDATION' || code === 'INVALID_TRANSFER') {
+    return res.status(400).json({ error: err.message })
+  }
   console.error(err)
   const status = err.status || 500
   res.status(status).json({

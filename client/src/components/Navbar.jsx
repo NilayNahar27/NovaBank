@@ -22,7 +22,7 @@ export default function Navbar({ onMenu, showMenu = false, right = null }) {
             </div>
             <div className="leading-tight">
               <p className="font-display text-sm font-semibold text-slate-900">NovaBank</p>
-              <p className="text-[11px] font-medium text-slate-500">ATM Simulator</p>
+              <p className="text-[11px] font-medium text-slate-500">Net Banking</p>
             </div>
           </Link>
         </div>

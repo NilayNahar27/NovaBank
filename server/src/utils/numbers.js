@@ -34,3 +34,14 @@ export async function generateUniqueCardNumber(connection = null) {
   }
   throw new Error('Could not generate unique card number')
 }
+
+/** Customer ID like NB12345678 (fits VARCHAR(16)) */
+export async function generateUniqueCustomerId(connection = null) {
+  const exec = connection || pool
+  for (let i = 0; i < 30; i++) {
+    const id = `NB${randomDigits(8)}`
+    const [rows] = await exec.query('SELECT id FROM users WHERE customer_id = ? LIMIT 1', [id])
+    if (!rows.length) return id
+  }
+  throw new Error('Could not generate unique customer id')
+}

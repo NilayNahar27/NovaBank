@@ -20,17 +20,20 @@ async function main() {
   })
 
   const pin = '1234'
+  const netPassword = 'Demo1234'
   const pinHash = await bcrypt.hash(pin, 10)
+  const passwordHash = await bcrypt.hash(netPassword, 10)
   const email = 'demo@novabank.test'
+  const customerId = 'NB00012345'
 
   await conn.beginTransaction()
   try {
     await conn.query('DELETE FROM users WHERE email = ?', [email])
 
     const [u] = await conn.query(
-      `INSERT INTO users (full_name, email, phone, pin_hash)
-       VALUES ('Demo Customer', ?, '+919876543210', ?)`,
-      [email, pinHash]
+      `INSERT INTO users (customer_id, full_name, email, phone, pin_hash, password_hash)
+       VALUES (?, 'Demo Customer', ?, '+919876543210', ?, ?)`,
+      [customerId, email, pinHash, passwordHash]
     )
     const userId = u.insertId
 
@@ -44,29 +47,33 @@ async function main() {
     const cardNumber = '4532015112830366'
     const accountNumber = '120093847562'
     const [a] = await conn.query(
-      `INSERT INTO accounts (user_id, card_number, account_number, account_type)
-       VALUES (?, ?, ?, 'Savings')`,
+      `INSERT INTO accounts (user_id, card_number, account_number, account_type, ifsc_code, branch_name)
+       VALUES (?, ?, ?, 'Savings', 'NOVA0001234', 'NovaBank — Koramangala Branch')`,
       [userId, cardNumber, accountNumber]
     )
     const accountId = a.insertId
 
     const txs = [
-      ['credit', 25000, 'Opening deposit'],
-      ['credit', 500, 'Salary credit'],
-      ['debit', 1200, 'ATM withdrawal'],
-      ['debit', 450, 'POS purchase'],
-      ['credit', 2000, 'Refund'],
+      ['credit', 'deposit', 25000, 'Opening deposit'],
+      ['credit', 'deposit', 500, 'Salary credit'],
+      ['debit', 'withdrawal', 1200, 'ATM withdrawal'],
+      ['debit', 'withdrawal', 450, 'POS purchase'],
+      ['credit', 'deposit', 2000, 'Refund'],
     ]
-    for (const [type, amount, desc] of txs) {
+    for (const [type, category, amount, desc] of txs) {
       await conn.query(
-        `INSERT INTO transactions (account_id, type, amount, description) VALUES (?, ?, ?, ?)`,
-        [accountId, type, amount, desc]
+        `INSERT INTO transactions (account_id, type, category, amount, description, status)
+         VALUES (?, ?, ?, ?, ?, 'posted')`,
+        [accountId, type, category, amount, desc]
       )
     }
 
     await conn.commit()
     console.log('Seed complete.')
-    console.log('Demo login:')
+    console.log('Demo login (net banking):')
+    console.log('  Email:', email)
+    console.log('  Password:', netPassword)
+    console.log('Demo login (card):')
     console.log('  Card number:', cardNumber)
     console.log('  PIN:', pin)
   } catch (e) {

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import Navbar, { UserBar } from '../components/Navbar.jsx'
 import Sidebar from '../components/Sidebar.jsx'
+import Topbar from '../components/Topbar.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function DashboardLayout() {
@@ -13,7 +14,12 @@ export default function DashboardLayout() {
       <Navbar
         showMenu
         onMenu={() => setOpen((v) => !v)}
-        right={<UserBar name={me?.user?.fullName || 'Customer'} onLogout={logout} />}
+        right={
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Topbar />
+            <UserBar name={me?.user?.fullName || 'Customer'} onLogout={logout} />
+          </div>
+        }
       />
       <div className="mx-auto flex max-w-7xl gap-0 lg:gap-6 lg:px-6 lg:py-6">
         <div

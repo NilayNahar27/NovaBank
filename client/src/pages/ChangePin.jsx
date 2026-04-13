@@ -32,10 +32,10 @@ export default function ChangePin() {
   return (
     <div className="mx-auto max-w-lg space-y-6">
       <div>
-        <h1 className="font-display text-2xl font-semibold text-slate-900">Change ATM PIN</h1>
+        <h1 className="font-display text-2xl font-semibold text-slate-900">Change PIN</h1>
         <p className="mt-1 text-sm text-slate-600">
-          We verify your current PIN before applying a new hash — the same flow you would expect at a physical
-          ATM.
+          We verify your current PIN before applying a new hash. You will receive an in-app alert when the change
+          completes.
         </p>
       </div>
       <form

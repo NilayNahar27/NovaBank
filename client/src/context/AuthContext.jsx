@@ -32,13 +32,27 @@ export function AuthProvider({ children }) {
     loadMe()
   }, [loadMe])
 
-  const login = useCallback(async (cardNumber, pin) => {
-    const { data } = await api.post('/api/auth/login', { cardNumber, pin })
-    localStorage.setItem('nb_token', data.token)
-    setToken(data.token)
-    await loadMe()
-    return data
-  }, [loadMe])
+  const login = useCallback(
+    async (cardNumber, pin) => {
+      const { data } = await api.post('/api/auth/login', { cardNumber, pin })
+      localStorage.setItem('nb_token', data.token)
+      setToken(data.token)
+      await loadMe()
+      return data
+    },
+    [loadMe]
+  )
+
+  const loginWithEmail = useCallback(
+    async (email, password) => {
+      const { data } = await api.post('/api/auth/login', { email, password })
+      localStorage.setItem('nb_token', data.token)
+      setToken(data.token)
+      await loadMe()
+      return data
+    },
+    [loadMe]
+  )
 
   const logout = useCallback(() => {
     localStorage.removeItem('nb_token')
@@ -62,11 +76,12 @@ export function AuthProvider({ children }) {
       loading,
       isAuthenticated: !!token && !!me,
       login,
+      loginWithEmail,
       logout,
       bootstrapSession,
       refreshMe: loadMe,
     }),
-    [token, me, loading, login, logout, bootstrapSession, loadMe]
+    [token, me, loading, login, loginWithEmail, logout, bootstrapSession, loadMe]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -31,13 +31,13 @@ export default function SignupCredentialsCard({
 
   const downloadTxt = () => {
     const body = [
-      'NovaBank ATM Simulator — save this file in a safe place',
+      'NovaBank Net Banking — save this file in a safe place',
       '',
       `Account type: ${accountType}`,
-      `Card number (use this to sign in): ${cardDigits}`,
+      `Card number (optional card login): ${cardDigits}`,
       `Account number: ${accountNumber}`,
       '',
-      'Sign in at the app with your card number + ATM PIN.',
+      'Sign in with your email + password, or card number + ATM PIN.',
       '',
       `Issued: ${new Date().toISOString()}`,
     ].join('\n')

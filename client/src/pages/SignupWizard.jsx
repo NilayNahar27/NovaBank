@@ -38,6 +38,8 @@ export default function SignupWizard() {
       accountType: 'Savings',
       pin: '',
       confirmPin: '',
+      password: '',
+      confirmPassword: '',
     },
   })
 
@@ -93,11 +95,20 @@ export default function SignupWizard() {
       push('PINs do not match.', 'error')
       return
     }
+    if (values.password !== values.confirmPassword) {
+      push('Passwords do not match.', 'error')
+      return
+    }
+    if (values.password.length < 8) {
+      push('Password must be at least 8 characters.', 'error')
+      return
+    }
     setSubmitting(true)
     try {
       const { data } = await api.post('/api/auth/signup/step3', {
         signupToken,
         pin: values.pin,
+        password: values.password,
         accountType: values.accountType,
       })
       await bootstrapSession(data.token)
@@ -119,8 +130,8 @@ export default function SignupWizard() {
       title={issued ? 'Save your login details' : 'Create your NovaBank account'}
       subtitle={
         issued
-          ? 'Copy or download your card number now. You will use it with your PIN every time you sign in.'
-          : 'A guided 3-step flow mirrors legacy desktop onboarding — with modern validation, secure PIN hashing, and instant virtual card issuance.'
+          ? 'Copy or download your card number now. You can sign in with email and password, or with your card and PIN.'
+          : 'A guided 3-step flow with profile capture, secure password + PIN hashing, and instant virtual account issuance.'
       }
     >
       {issued ? (
@@ -128,7 +139,7 @@ export default function SignupWizard() {
           cardNumber={issued.cardNumber}
           accountNumber={issued.accountNumber}
           accountType={issued.accountType}
-          onContinue={() => nav('/app', { replace: true })}
+          onContinue={() => nav('/dashboard', { replace: true })}
         />
       ) : (
         <>
@@ -241,6 +252,22 @@ export default function SignupWizard() {
                 inputMode="numeric"
                 {...register('confirmPin', { required: 'Confirm your PIN' })}
                 error={errors.confirmPin?.message}
+              />
+              <FormInput
+                label="Net banking password"
+                type="password"
+                hint="At least 8 characters, with letters and numbers."
+                {...register('password', {
+                  required: 'Password required',
+                  minLength: { value: 8, message: 'Minimum 8 characters' },
+                })}
+                error={errors.password?.message}
+              />
+              <FormInput
+                label="Confirm password"
+                type="password"
+                {...register('confirmPassword', { required: 'Confirm your password' })}
+                error={errors.confirmPassword?.message}
               />
               <div className="flex gap-3">
                 <button
