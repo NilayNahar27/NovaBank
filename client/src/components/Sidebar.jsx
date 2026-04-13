@@ -1,0 +1,59 @@
+import { NavLink } from 'react-router-dom'
+import {
+  ArrowDownLeft,
+  ArrowUpRight,
+  Banknote,
+  CreditCard,
+  FileText,
+  Gauge,
+  Landmark,
+  Lock,
+  Zap,
+} from 'lucide-react'
+
+const links = [
+  { to: '/app', end: true, label: 'Dashboard', icon: Gauge },
+  { to: '/app/deposit', label: 'Deposit', icon: ArrowDownLeft },
+  { to: '/app/withdraw', label: 'Withdraw', icon: ArrowUpRight },
+  { to: '/app/fast-cash', label: 'Fast Cash', icon: Zap },
+  { to: '/app/balance', label: 'Balance', icon: Landmark },
+  { to: '/app/mini-statement', label: 'Mini Statement', icon: FileText },
+  { to: '/app/change-pin', label: 'Change PIN', icon: Lock },
+]
+
+export default function Sidebar({ onNavigate }) {
+  return (
+    <aside className="flex h-full flex-col border-r border-slate-200 bg-white">
+      <div className="border-b border-slate-100 px-5 py-4">
+        <div className="flex items-center gap-2 text-slate-800">
+          <CreditCard className="h-5 w-5 text-brand-600" />
+          <p className="font-display text-sm font-semibold">Self-Service</p>
+        </div>
+        <p className="mt-1 text-xs text-slate-500">Choose a secure banking action.</p>
+      </div>
+      <nav className="flex-1 space-y-1 p-3">
+        {links.map(({ to, label, icon: Icon, end }) => (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+                isActive
+                  ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`
+            }
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+      <div className="border-t border-slate-100 p-4 text-xs text-slate-500">
+        NovaBank demo environment. Funds are simulated.
+      </div>
+    </aside>
+  )
+}
