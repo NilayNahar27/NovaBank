@@ -1,9 +1,12 @@
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import AuthLayout from '../layouts/AuthLayout.jsx'
 import FormInput from '../components/FormInput.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 import { useToast } from '../context/ToastContext.jsx'
+import { getSavedCardNumber, clearSavedCardNumber } from '../utils/cardStorage.js'
+import { formatCardGroups } from '../utils/format.js'
 
 export default function Login() {
   const { login } = useAuth()
@@ -11,12 +14,22 @@ export default function Login() {
   const nav = useNavigate()
   const loc = useLocation()
   const from = loc.state?.from || '/app'
+  const [hasSavedCard, setHasSavedCard] = useState(() => !!getSavedCardNumber())
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm({ defaultValues: { cardNumber: '', pin: '' } })
+
+  useEffect(() => {
+    const saved = getSavedCardNumber()
+    if (saved) {
+      reset({ cardNumber: formatCardGroups(saved), pin: '' })
+      setHasSavedCard(true)
+    }
+  }, [reset])
 
   const onSubmit = async (values) => {
     try {
@@ -47,6 +60,20 @@ export default function Login() {
             minLength: { value: 14, message: 'Enter a valid card number' },
           })}
         />
+        {hasSavedCard && (
+          <button
+            type="button"
+            onClick={() => {
+              clearSavedCardNumber()
+              setHasSavedCard(false)
+              reset({ cardNumber: '', pin: '' })
+              push('Saved card cleared from this browser.')
+            }}
+            className="-mt-1 text-left text-xs font-medium text-slate-500 underline-offset-2 hover:text-brand-700 hover:underline"
+          >
+            Clear remembered card from this device
+          </button>
+        )}
         <FormInput
           label="PIN"
           type="password"

@@ -23,3 +23,9 @@ export function maskCard(cardNumber) {
   const last4 = s.slice(-4)
   return `•••• •••• •••• ${last4}`
 }
+
+/** Groups digits as 4532 0151 1283 0366 for display / login field. */
+export function formatCardGroups(cardNumber) {
+  const d = String(cardNumber || '').replace(/\D/g, '')
+  return d.replace(/(\d{4})(?=\d)/g, '$1 ').trim()
+}
