@@ -12,19 +12,11 @@ export default function Landing() {
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(37,99,235,0.18),transparent_42%),radial-gradient(circle_at_80%_0%,rgba(99,102,241,0.16),transparent_38%)]" />
           <div className="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-24 lg:px-8">
             <div>
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-semibold text-brand-800 shadow-sm"
-              >
-                <Sparkles className="h-3.5 w-3.5" />
-                Interview-ready full stack demo
-              </motion.div>
               <motion.h1
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.05 }}
-                className="mt-6 font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl"
+                className="font-display text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl"
               >
                 NovaBank Net Banking
               </motion.h1>
